@@ -126,7 +126,24 @@ header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:s
 .key.del{color:var(--muted)}
 .msg{min-height:26px;font:800 17px var(--f-body)}
 .msg.ok{color:var(--ok)}.msg.bad{color:var(--sale)}
-.hint{background:#1c2a3a;border:1px solid #2c4c6b;border-radius:12px;padding:10px 12px;font-weight:700}
+.hint,.explain{background:#1c2a3a;border:1px solid #2c4c6b;border-radius:12px;padding:10px 12px;font-weight:700;display:flex;flex-direction:column;gap:6px}
+.hint ol,.explain ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.hint li,.explain li{animation:pop2 .3s}
+.explain{background:#2a1c24;border-color:#6b2c45}
+.explain h4{margin:0;font:900 13px var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:#ff9fb2}
+.explain .ans{color:var(--tag)}
+.tut{width:min(560px,100%);text-align:left;align-items:stretch}
+.tut h3{text-align:center}
+.tut .lvl{align-self:center;font:900 12px var(--f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rules li{background:var(--panel2);border-radius:12px;padding:8px 12px 8px 36px;position:relative;font-weight:700;animation:slideIn .35s backwards}
+.rules li::before{content:"✓";position:absolute;left:12px;color:var(--ok);font-weight:900}
+@keyframes slideIn{from{transform:translateX(-14px);opacity:0}}
+.receipt{background:#f4f1e8;color:#1a1a1a;font:700 15px/1.6 var(--f-mono);padding:14px 16px 20px;border-radius:6px 6px 0 0;position:relative;transform:rotate(-1deg);box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(-45deg,transparent 7px,#f4f1e8 0) 0 0/14px 10px,linear-gradient(45deg,transparent 7px,#f4f1e8 0) 0 0/14px 10px}
+.receipt .h{text-align:center;border-bottom:2px dashed #999;padding-bottom:4px;margin-bottom:6px;letter-spacing:.1em}
+.receipt div{animation:slideIn .35s backwards}
+.receipt .tot{border-top:2px dashed #999;margin-top:6px;padding-top:4px;color:#c4241a}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .btn{font:800 15px var(--f-body);background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:12px;min-height:44px;padding:0 16px;cursor:pointer}
 .btn.main{background:var(--tag);color:#1a1300;border-color:var(--tag)}
@@ -180,8 +197,9 @@ th{color:var(--muted);font-size:12px;border-top:0}
       <div class="screen empty" id="screen">₪ ?</div>
       <div class="msg" id="msg"></div>
       <div class="hint" id="hint" hidden></div>
+      <div class="explain" id="explain" hidden></div>
       <div class="pad" id="pad"></div>
-      <div class="row"><button class="btn" id="hintBtn" type="button">Подсказка</button><button class="btn freeze" id="freezeBtn" type="button" disabled>❄️ Заморозить бота (0)</button></div>
+      <div class="row"><button class="btn" id="tutBtn" type="button">📘 Как считать</button><button class="btn" id="hintBtn" type="button">Подсказка</button><button class="btn freeze" id="freezeBtn" type="button" disabled>❄️ Заморозить бота (0)</button></div>
       <p class="how">Печатай с клавиатуры, Enter — купить.</p>
     </section>
   </div>
@@ -231,6 +249,28 @@ const FACES={normal:'M24 38 h16',smug:'M24 37 q10 5 16 -3',happy:'M23 35 q9 9 18
 let prog={xp:0,coll:{}};try{const sv=JSON.parse(localStorage.getItem('saleRaid')||'null');if(sv){prog.xp=+sv.xp||0;prog.coll=sv.coll||{}}}catch(e){}
 function saveProg(){try{localStorage.setItem('saleRaid',JSON.stringify(prog))}catch(e){}}
 let rar=0,freezes=0,frozenUntil=0,lastT=0,taunted=false,xpGame=0;
+const fmt=n=>String(+(+n).toFixed(2)).replace('.',',');
+function pctSteps(pc,p){const v10=p/10,v1=p/100;
+  if(pc===50)return ['50% — это половина: '+p+' : 2 = '+fmt(p/2)];
+  if(pc===25)return ['25% — это четверть: '+p+' : 4 = '+fmt(p/4)];
+  if(pc===10)return ['10% — делим на 10: '+p+' : 10 = '+fmt(v10)];
+  if(pc===1)return ['1% — делим на 100: '+p+' : 100 = '+fmt(v1)];
+  const t=Math.floor(pc/10),u=pc%10,out=[],parts=[];
+  if(t){out.push('10% от '+p+' = '+p+' : 10 = '+fmt(v10));parts.push((t>1?t+' × ':'')+fmt(v10))}
+  if(u===5){out.push('5% — половина от 10%: '+fmt(v10)+' : 2 = '+fmt(v10/2));parts.push(fmt(v10/2))}else if(u){out.push('1% от '+p+' = '+p+' : 100 = '+fmt(v1));parts.push((u>1?u+' × ':'')+fmt(v1))}
+  out.push(pc+'% = '+parts.join(' + ')+' = '+fmt(p*pc/100));return out}
+function stepsOf(t){if(t.cmp){const L=t.cmp.map(([a,d,f],i)=>(i?'Магазин Б':'Магазин А')+': '+d+'% от '+a+' = '+fmt(a*d/100)+', цена '+a+' − '+fmt(a*d/100)+' = '+f);return L.concat(['Меньшая цена: '+t.a+' ₪'])}
+  const s=pctSteps(t.pc,t.p);const x=t.p*t.pc/100;
+  if(t.badge&&t.up)return s.concat(['Новая цена: '+t.p+' + '+fmt(x)+' = '+t.a+' ₪']);
+  if(t.badge)return s.concat(['Платим: '+t.p+' − '+fmt(x)+' = '+t.a+' ₪']);
+  return s}
+const TUT=[
+ {title:'Быстрые проценты',rules:['100% — это вся цена','50% — половина: делим на 2','25% — четверть: делим на 4','10% — делим на 10','20% — это 10% два раза'],ex:['25% от 80 ₪','80 : 4 = 20'],tot:'ОТВЕТ: 20 ₪'},
+ {title:'Любой процент',rules:['Сначала найди 10%: дели на 10','5% — половина от 10%','1% — дели на 100','Собери нужный процент из кусочков'],ex:['35% от 200 ₪','10% = 20','5% = 10','35% = 3 × 20 + 10'],tot:'ОТВЕТ: 70 ₪'},
+ {title:'Цена со скидкой',rules:['Шаг 1: найди, сколько ₪ составляет скидка','Шаг 2: вычти скидку из цены','Лайфхак: скидка 25% — значит платишь 75% цены'],ex:['Худи 300 ₪, скидка 30%','10% = 30','30% = 3 × 30 = 90','300 − 90 = 210'],tot:'К ОПЛАТЕ: 210 ₪'},
+ {title:'Подорожание и сравнение',rules:['Подорожание: найди % и прибавь к цене','Сравнение: посчитай обе цены со скидкой','Введи ту, что меньше'],ex:['Наушники 200 ₪, +10%','10% = 20','200 + 20 = 220'],tot:'НОВАЯ ЦЕНА: 220 ₪'},
+ {title:'Чёрная пятница',rules:['Здесь всё вперемешку: проценты, скидки, подорожание','Сначала пойми, что спрашивают, потом считай','Бот самый быстрый, но у тебя есть ❄️ заморозки'],ex:['Скидка 15% на 400 ₪','10% = 40, 5% = 20','15% = 60','400 − 60 = 340'],tot:'К ОПЛАТЕ: 340 ₪'}];
+let paused=false,hintStep=0,wrongs=0,waitNext=false;
 let lv=0,round=0,task=null,input='',busy=false,me=0,bot=0,streak=0,saved=0,timerOn=true,t0=0,tLeft=0,penalty=0,raf=0,hintShown=false,cur=null,good=null;
 const log=LEVELS.map(()=>[]);
 
@@ -268,16 +308,16 @@ function stamp(text,ok){const st=el('div','stamp '+(ok?'ok':'bad'),text);$('prod
 function drawRank(){let i=0;RANKS.forEach((r,j)=>{if(prog.xp>=r[0])i=j});const lo=RANKS[i][0],hi=RANKS[i+1]?RANKS[i+1][0]:lo;$('rank').textContent=RANKS[i][1];$('xpBar').style.width=(hi>lo?(prog.xp-lo)/(hi-lo)*100:100)+'%';$('xpTxt').textContent=prog.xp+' XP'+(RANKS[i+1]?' / '+hi:'');
   const c=$('coll');c.replaceChildren();let got=0;GOODS.forEach(([e,n])=>{const k=prog.coll[n];const s=el('span',k!=null?'got c'+k:'',e);s.title=k!=null?n+' — '+RAR[k].n.toLowerCase():'ещё не добыто';if(k!=null)got++;c.append(s)});$('collN').textContent=got+'/'+GOODS.length}
 function drawFreeze(){const b=$('freezeBtn');b.textContent='❄️ Заморозить бота ('+freezes+')';b.disabled=!freezes||!timerOn||busy}
-function newRound(){good=pick(GOODS);rar=rollRar();taunted=false;task=GEN[LEVELS[lv].gen]();face('normal',round===0?BOTS[lv].hi:pick(['Этот товар мой.','Считай быстрее, человек.','Я уже бегу к кассе!','Скидка? Обожаю скидки.']));$('botName').textContent=BOTS[lv].name;$('botAv').style.color=BOTS[lv].color;input='';hintShown=false;penalty=0;cur={kind:task.kind,q:task.plain,a:task.a,won:false,first:true,hint:false,ms:0};
-  drawProduct();drawScreen();$('msg').textContent='';$('msg').className='msg';$('hint').hidden=true;$('hint').textContent=task.hint;$('hintBtn').disabled=false;
+function newRound(){good=pick(GOODS);rar=rollRar();taunted=false;task=GEN[LEVELS[lv].gen]();face('normal',round===0?BOTS[lv].hi:pick(['Этот товар мой.','Считай быстрее, человек.','Я уже бегу к кассе!','Скидка? Обожаю скидки.']));$('botName').textContent=BOTS[lv].name;$('botAv').style.color=BOTS[lv].color;input='';hintShown=false;hintStep=0;wrongs=0;waitNext=false;penalty=0;cur={kind:task.kind,q:task.plain,a:task.a,won:false,first:true,hint:false,ms:0};
+  drawProduct();drawScreen();$('msg').textContent='';$('msg').className='msg';$('hint').hidden=true;$('hint').replaceChildren();$('explain').hidden=true;$('hintBtn').disabled=false;$('hintBtn').textContent='Подсказка';
   $('lvTitle').textContent=LEVELS[lv].name+' · раунд '+(round+1)+' из '+LEVELS[lv].n;
   $('meBar').style.width='0%';startTimer();drawFreeze()}
-function startTimer(){cancelAnimationFrame(raf);const T=LEVELS[lv].t*1000;t0=performance.now();lastT=t0;frozenUntil=0;$('botBarBox').classList.remove('frozen');$('botBar').style.width='0%';$('botBarBox').classList.remove('rush');let lastTick=0;
+function startTimer(){cancelAnimationFrame(raf);const n=LEVELS[lv].n;const T=LEVELS[lv].t*1000*(1.5-.6*round/Math.max(1,n-1));t0=performance.now();lastT=t0;frozenUntil=0;$('botBarBox').classList.remove('frozen');$('botBar').style.width='0%';$('botBarBox').classList.remove('rush');let lastTick=0;
   if(!timerOn){$('botBar').style.width='0%';return}
-  const step=t=>{if(busy||!document.contains($('botBar')))return;if(t<frozenUntil){t0+=t-lastT}else if(frozenUntil){frozenUntil=0;$('botBarBox').classList.remove('frozen');face('mad','Кто меня заморозил?!')}lastT=t;const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75&&!frozenUntil){$('botBarBox').classList.add('rush');if(!taunted){taunted=true;face('smug','Почти моё…')}if(t-lastTick>500){sTick();lastTick=t}}
+  const step=t=>{if(busy||!document.contains($('botBar')))return;if(paused){t0+=t-lastT;lastT=t;raf=requestAnimationFrame(step);return}if(t<frozenUntil){t0+=t-lastT}else if(frozenUntil){frozenUntil=0;$('botBarBox').classList.remove('frozen');face('mad','Кто меня заморозил?!')}lastT=t;const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75&&!frozenUntil){$('botBarBox').classList.add('rush');if(!taunted){taunted=true;face('smug','Почти моё…')}if(t-lastTick>500){sTick();lastTick=t}}
     if(k>=1){botWins();return}raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
 function drawScreen(){const s=$('screen');s.textContent=input?input+' ₪':'₪ ?';s.classList.toggle('empty',!input);$('meBar').style.width=Math.min(100,input.length*25)+'%'}
-function press(k){if(busy)return;if(k==='del')input=input.slice(0,-1);else if(k==='go'){submit();return}else if(input.length<6)input=(input==='0'?'':input)+k;drawScreen()}
+function press(k){if(waitNext&&k==='go'){waitNext=false;next();return}if(busy)return;if(k==='del')input=input.slice(0,-1);else if(k==='go'){submit();return}else if(input.length<6)input=(input==='0'?'':input)+k;drawScreen()}
 function submit(){if(!input||busy)return;const v=+input;
   if(v===task.a){busy=true;cancelAnimationFrame(raf);cur.won=true;cur.ms=performance.now()-t0;me++;streak++;const disc=task.badge&&!task.up?task.p-task.a:task.cmp?Math.max(task.cmp[0][2],task.cmp[1][2])-task.a:0;saved+=disc;
     $('msg').className='msg ok';$('msg').textContent=(streak>=3?'🔥 Серия '+streak+'! ':'')+pick(['Твоё!','Забрал!','Раньше бота!','Чистая победа!']);sWin();
@@ -285,18 +325,28 @@ function submit(){if(!input||busy)return;const v=+input;
     if(streak%3===0&&freezes<2){freezes++;$('msg').textContent+=' Бонус: ❄️ заморозка бота!'}
     stamp('КУПЛЕНО',true);face('mad',pick(['Эй, это было моё!','Как ты так быстро?!','Не честно!','Ладно, следующий мой.']));
     const r=$('product').getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/3,rar>=2||streak>=3?70:40);coinRain(rar>=2?40:18);if(rar>=2)flash(rar===3?'#ffd23f':'#b44dff');$('meBubble').textContent=pick(['Моё!','Изи.','Ещё давай!','Бот, учись.']);addItem(true);hud();drawFreeze();setTimeout(next,1000)}
-  else{cur.first=false;streak=0;sBad();const s=$('screen');s.classList.remove('bad');void s.offsetWidth;s.classList.add('bad');$('msg').className='msg bad';$('msg').textContent=input+' — не то. Бот уже ближе!';penalty+=1500;input='';drawScreen();hud();face('smug',pick(['Ха, мимо!','Спасибо за фору!','Пересчитай, человек.']));if(!hintShown&&!timerOn)showHint()}}
-function botWins(){if(busy)return;busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';stamp('УКРАДЕНО',false);$('meBubble').textContent=pick(['Эх…','В следующий раз!','Он читерит!']);face('happy',pick(['Забираю!','Моё! Хе-хе.','Слишком медленно.']));addItem(false);hud();drawFreeze();setTimeout(next,1800)}
+  else{cur.first=false;streak=0;sBad();const s=$('screen');s.classList.remove('bad');void s.offsetWidth;s.classList.add('bad');$('msg').className='msg bad';$('msg').textContent=input+' — не то. Бот уже ближе!';penalty+=1500;input='';drawScreen();hud();face('smug',pick(['Ха, мимо!','Спасибо за фору!','Пересчитай, человек.']));wrongs++;if(wrongs>=2&&hintStep<hintList().length)showHint(true)}}
+function botWins(){if(busy)return;busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';stamp('УКРАДЕНО',false);$('meBubble').textContent=pick(['Эх…','В следующий раз!','Он читерит!']);face('happy',pick(['Забираю!','Моё! Хе-хе.','Слишком медленно.']));addItem(false);hud();drawFreeze();waitNext=true;showExplain()}
 function next(){log[lv].push(cur);report();round++;if(round>=LEVELS[lv].n){levelEnd();return}busy=false;newRound()}
 function addItem(win){const s=el('span',win?'':'lost',good[0]);s.title=win?good[1]:'забрал бот';$('items').append(s)}
 function hud(){$('meScore').textContent=me;$('botScore').textContent=bot;$('streakP').textContent=streak;$('saved').textContent=saved+' ₪'}
-function showHint(){hintShown=true;cur.hint=true;$('hint').hidden=false;$('hintBtn').disabled=true;penalty+=1000}
+function hintList(){const st=stepsOf(task);return st.length>1?st.slice(0,-1):[task.hint]}
+function showHint(all){if(busy)return;const L=hintList();hintStep=all?L.length:Math.min(L.length,hintStep+1);hintShown=true;cur.hint=true;penalty+=1000;
+  const h=$('hint');h.hidden=false;h.replaceChildren(el('b',null,'Подсказка'));const ol=el('ol');L.slice(0,hintStep).forEach(x=>ol.append(el('li',null,x)));h.append(ol);
+  const b=$('hintBtn');if(hintStep>=L.length){b.disabled=true;b.textContent='Подсказка ✓'}else b.textContent='Ещё шаг ('+hintStep+'/'+L.length+')'}
+function showExplain(){const e=$('explain');e.hidden=false;e.replaceChildren(el('h4',null,'Разбор'));const ol=el('ol');stepsOf(task).forEach((x,i,a)=>{const li=el('li',i===a.length-1?'ans':null,x);li.style.animationDelay=(i*.25)+'s';ol.append(li)});e.append(ol);
+  const b=el('button','btn main','Понятно, дальше ▶');b.type='button';b.onclick=()=>{if(waitNext){waitNext=false;next()}};e.append(b);setTimeout(()=>b.focus(),50)}
 function modal(title,big,text,btns){const ov=el('div','overlay');const m=el('div','modal');m.append(el('div','big',big),el('h3',null,title),el('p',null,text));const row=el('div','row');row.style.justifyContent='center';btns.forEach(([t,c,f])=>{const b=el('button','btn '+c,t);b.type='button';b.onclick=()=>{ov.remove();f()};row.append(b)});m.append(row);ov.append(m);document.body.append(ov);row.querySelector('button').focus()}
 function levelEnd(){cancelAnimationFrame(raf);drawLevels();const l=log[lv],w=l.filter(x=>x.won).length;const win=w>l.length/2;if(win){sFan();for(let i=0;i<5;i++)setTimeout(()=>burst(innerWidth*(.2+Math.random()*.6),innerHeight*.3,40),i*150)}
   const last=lv===LEVELS.length-1;
   modal(win?(last?'Чёрная пятница твоя!':'Уровень за тобой!'):'Бот оказался быстрее',win?'🏆':'🤖','Ты забрал '+w+' из '+l.length+'. Сэкономлено: '+saved+' ₪. Опыт за игру: +'+xpGame+' XP, ранг — '+$('rank').textContent+'.',
    last||!win?[['Ещё раз','main',()=>go(lv,true)]].concat(!last&&!win?[['Дальше всё равно','',()=>go(lv+1)]]:[]):[['Дальше: '+LEVELS[lv+1].name,'main',()=>go(lv+1)],['Ещё раз','',()=>go(lv,true)]])}
-function go(n,reset){cancelAnimationFrame(raf);document.querySelectorAll('.overlay').forEach(o=>o.remove());lv=n;round=0;busy=false;if(reset)log[lv]=[];else log[lv]=[];drawLevels();newRound()}
+function tutorial(onClose){const T=TUT[lv];const ov=el('div','overlay');const m=el('div','modal tut');
+  m.append(el('div','lvl','Уровень '+(lv+1)+' · как считать'),el('h3',null,T.title));
+  const ul=el('ul','rules');T.rules.forEach((r,i)=>{const li=el('li',null,r);li.style.animationDelay=(i*.12)+'s';ul.append(li)});m.append(ul);
+  const rc=el('div','receipt');rc.append(el('div','h','ЧЕК · ПРИМЕР'));T.ex.forEach((x,i)=>{const d=el('div',null,x);d.style.animationDelay=(.5+i*.25)+'s';rc.append(d)});const tt=el('div','tot',T.tot);tt.style.animationDelay=(.5+T.ex.length*.25)+'s';rc.append(tt);m.append(rc);
+  const b=el('button','btn main',onClose?'Понял, в бой!':'Вернуться к раунду');b.type='button';b.style.alignSelf='center';b.onclick=()=>{ov.remove();paused=false;if(onClose)onClose()};m.append(b);ov.append(m);document.body.append(ov);setTimeout(()=>b.focus(),50)}
+function go(n,reset){cancelAnimationFrame(raf);document.querySelectorAll('.overlay').forEach(o=>o.remove());lv=n;round=0;busy=false;waitNext=false;log[lv]=[];drawLevels();tutorial(()=>newRound())}
 function report(){const box=$('report');box.replaceChildren();const kinds=['Быстрые %','Любой %','Цена со скидкой','Подорожание и сравнение'];const all=log.flat();
   const tb=el('table');const h=el('tr');['Тема','С первой попытки','Подсказка','Среднее время','Вывод'].forEach(x=>h.append(el('th',null,x)));tb.append(h);
   kinds.forEach(k=>{const l=all.filter(x=>x.kind===k);const f=l.filter(x=>x.won&&x.first).length,hi=l.filter(x=>x.hint).length;const ws=l.filter(x=>x.won);const avg=ws.length?Math.round(ws.reduce((s,x)=>s+x.ms,0)/ws.length/1000)+' с':'—';
@@ -306,7 +356,8 @@ function report(){const box=$('report');box.replaceChildren();const kinds=['Бы
 
 const pad=$('pad');['7','8','9','4','5','6','1','2','3','del','0','go'].forEach(k=>{const b=el('button','key'+(k==='go'?' go':k==='del'?' del':''),k==='del'?'⌫':k==='go'?'Купить':k);b.type='button';b.dataset.k=k;b.setAttribute('aria-label',k==='del'?'Стереть':k==='go'?'Купить':k);b.onclick=()=>press(k);pad.append(b)});
 addEventListener('keydown',e=>{if(document.querySelector('.overlay'))return;let k=null;if(/^[0-9]$/.test(e.key))k=e.key;else if(e.key==='Backspace')k='del';else if(e.key==='Enter')k='go';if(k){e.preventDefault();press(k);const b=pad.querySelector('[data-k="'+k+'"]');if(b){b.classList.add('press');setTimeout(()=>b.classList.remove('press'),90)}}});
-$('hintBtn').onclick=showHint;
+$('hintBtn').onclick=()=>showHint(false);
+$('tutBtn').onclick=()=>{if(document.querySelector('.overlay'))return;paused=true;tutorial(null)};
 $('product').addEventListener('pointermove',e=>{const r=e.currentTarget.getBoundingClientRect();const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;const em=e.currentTarget.querySelector('.em');if(em){em.style.setProperty('--ry',(x*36)+'deg');em.style.setProperty('--rx',(-y*24)+'deg')}});
 $('product').addEventListener('pointerleave',e=>{const em=e.currentTarget.querySelector('.em');if(em){em.style.setProperty('--ry','0deg');em.style.setProperty('--rx','0deg')}});
 $('freezeBtn').onclick=()=>{if(!freezes||busy||!timerOn)return;freezes--;frozenUntil=performance.now()+5000;$('botBarBox').classList.add('frozen');$('botBarBox').classList.remove('rush');face('frozen','Бр-р-р… не могу двигаться!');drawFreeze()};
@@ -315,7 +366,7 @@ $('timerBtn').onclick=()=>{timerOn=!timerOn;setTimeout(drawFreeze);$('timerBtn')
 $('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'Включить звук':'Выключить звук')};
 addEventListener('resize',size);size();
 // первый раунд стартует только после «Погнали», чтобы бот не бежал за заставкой
-$('playBtn').onclick=()=>{audio();$('start').remove();drawLevels();newRound()};
+$('playBtn').onclick=()=>{audio();$('start').remove();go(0)};
 $('playBtn').focus();
 })();
 </script>
