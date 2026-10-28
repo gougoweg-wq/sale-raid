@@ -194,7 +194,7 @@ function newRound(){good=pick(GOODS);task=GEN[LEVELS[lv].gen]();input='';hintSho
   $('meBar').style.width='0%';startTimer()}
 function startTimer(){cancelAnimationFrame(raf);const T=LEVELS[lv].t*1000;t0=performance.now();$('botBar').style.width='0%';$('botBarBox').classList.remove('rush');let lastTick=0;
   if(!timerOn){$('botBar').style.width='0%';return}
-  const step=t=>{const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75){$('botBarBox').classList.add('rush');if(t-lastTick>500){sTick();lastTick=t}}
+  const step=t=>{if(busy||!document.contains($('botBar')))return;const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75){$('botBarBox').classList.add('rush');if(t-lastTick>500){sTick();lastTick=t}}
     if(k>=1){botWins();return}raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
 function drawScreen(){const s=$('screen');s.textContent=input?input+' ₪':'₪ ?';s.classList.toggle('empty',!input);$('meBar').style.width=Math.min(100,input.length*25)+'%'}
 function press(k){if(busy)return;if(k==='del')input=input.slice(0,-1);else if(k==='go'){submit();return}else if(input.length<6)input=(input==='0'?'':input)+k;drawScreen()}
@@ -203,8 +203,8 @@ function submit(){if(!input||busy)return;const v=+input;
     $('msg').className='msg ok';$('msg').textContent=(streak>=3?'🔥 Серия '+streak+'! ':'')+pick(['Твоё!','Забрал!','Раньше бота!','Чистая победа!']);sWin();
     const r=$('product').getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/3,streak>=3?60:40);addItem(true);hud();setTimeout(next,900)}
   else{cur.first=false;streak=0;sBad();const s=$('screen');s.classList.remove('bad');void s.offsetWidth;s.classList.add('bad');$('msg').className='msg bad';$('msg').textContent=input+' — не то. Бот уже ближе!';penalty+=1500;input='';drawScreen();hud();if(!hintShown&&!timerOn)showHint()}}
-function botWins(){busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';addItem(false);hud();setTimeout(next,1800)}
-function next(){busy=false;log[lv].push(cur);report();round++;if(round>=LEVELS[lv].n){levelEnd();return}newRound()}
+function botWins(){if(busy)return;busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';addItem(false);hud();setTimeout(next,1800)}
+function next(){log[lv].push(cur);report();round++;if(round>=LEVELS[lv].n){levelEnd();return}busy=false;newRound()}
 function addItem(win){const s=el('span',win?'':'lost',good[0]);s.title=win?good[1]:'забрал бот';$('items').append(s)}
 function hud(){$('meScore').textContent=me;$('botScore').textContent=bot;$('streakP').textContent=streak;$('saved').textContent=saved+' ₪'}
 function showHint(){hintShown=true;cur.hint=true;$('hint').hidden=false;$('hintBtn').disabled=true;penalty+=1000}
@@ -213,7 +213,7 @@ function levelEnd(){cancelAnimationFrame(raf);drawLevels();const l=log[lv],w=l.f
   const last=lv===LEVELS.length-1;
   modal(win?(last?'Чёрная пятница твоя!':'Уровень за тобой!'):'Бот оказался быстрее',win?'🏆':'🤖','Ты забрал '+w+' из '+l.length+'. Сэкономлено всего: '+saved+' ₪.',
    last||!win?[['Ещё раз','main',()=>go(lv,true)]].concat(!last&&!win?[['Дальше всё равно','',()=>go(lv+1)]]:[]):[['Дальше: '+LEVELS[lv+1].name,'main',()=>go(lv+1)],['Ещё раз','',()=>go(lv,true)]])}
-function go(n,reset){cancelAnimationFrame(raf);lv=n;round=0;busy=false;if(reset)log[lv]=[];else log[lv]=[];drawLevels();newRound()}
+function go(n,reset){cancelAnimationFrame(raf);document.querySelectorAll('.overlay').forEach(o=>o.remove());lv=n;round=0;busy=false;if(reset)log[lv]=[];else log[lv]=[];drawLevels();newRound()}
 function report(){const box=$('report');box.replaceChildren();const kinds=['Быстрые %','Любой %','Цена со скидкой','Подорожание и сравнение'];const all=log.flat();
   const tb=el('table');const h=el('tr');['Тема','С первой попытки','Подсказка','Среднее время','Вывод'].forEach(x=>h.append(el('th',null,x)));tb.append(h);
   kinds.forEach(k=>{const l=all.filter(x=>x.kind===k);const f=l.filter(x=>x.won&&x.first).length,hi=l.filter(x=>x.hint).length;const ws=l.filter(x=>x.won);const avg=ws.length?Math.round(ws.reduce((s,x)=>s+x.ms,0)/ws.length/1000)+' с':'—';
