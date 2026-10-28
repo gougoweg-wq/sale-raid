@@ -262,6 +262,12 @@ function drawProduct(){const P=$('product');P.replaceChildren();P.className='pro
   if(task.cmp){const c=el('div','cmp');task.cmp.forEach(([a,d],i)=>{const x=el('div');x.append(el('span',null,(i?'Магазин Б':'Магазин А')+' · −'+d+'%'));const t=el('b','ptag',a+' ₪');x.append(t);c.append(x)});P.append(el('div','name',good[1]),c)}
   else{const row=el('div','tagrow');row.append(el('span','ptag',task.p+' ₪'),el('div','name',good[1]));P.append(row)}
   const q=el('p','q');q.innerHTML=task.text;P.append(q)}
+function face(f,line){const m=$('botMouth');m.setAttribute('d',FACES[f]||FACES.normal);$('botBrows').setAttribute('opacity',f==='mad'||f==='smug'?'1':'0');$('botEyes').setAttribute('fill',f==='frozen'?'#e8fbff':'#3ddcff');$('botAv').classList.toggle('frozen',f==='frozen');if(line){const b=$('bubble');b.textContent=line;b.style.animation='none';void b.offsetWidth;b.style.animation=''}}
+function rollRar(){const w=lv===4?[.35,.3,.2,.15]:[.55,.28,.13,.04];let r=Math.random();for(let i=0;i<4;i++){if(r<w[i])return i;r-=w[i]}return 0}
+function stamp(text,ok){const st=el('div','stamp '+(ok?'ok':'bad'),text);$('product').append(st)}
+function drawRank(){let i=0;RANKS.forEach((r,j)=>{if(prog.xp>=r[0])i=j});const lo=RANKS[i][0],hi=RANKS[i+1]?RANKS[i+1][0]:lo;$('rank').textContent=RANKS[i][1];$('xpBar').style.width=(hi>lo?(prog.xp-lo)/(hi-lo)*100:100)+'%';$('xpTxt').textContent=prog.xp+' XP'+(RANKS[i+1]?' / '+hi:'');
+  const c=$('coll');c.replaceChildren();let got=0;GOODS.forEach(([e,n])=>{const k=prog.coll[n];const s=el('span',k!=null?'got c'+k:'',e);s.title=k!=null?n+' — '+RAR[k].n.toLowerCase():'ещё не добыто';if(k!=null)got++;c.append(s)});$('collN').textContent=got+'/'+GOODS.length}
+function drawFreeze(){const b=$('freezeBtn');b.textContent='❄️ Заморозить бота ('+freezes+')';b.disabled=!freezes||!timerOn||busy}
 function newRound(){good=pick(GOODS);rar=rollRar();taunted=false;task=GEN[LEVELS[lv].gen]();face('normal',round===0?BOTS[lv].hi:pick(['Этот товар мой.','Считай быстрее, человек.','Я уже бегу к кассе!','Скидка? Обожаю скидки.']));$('botName').textContent=BOTS[lv].name;$('botAv').style.color=BOTS[lv].color;input='';hintShown=false;penalty=0;cur={kind:task.kind,q:task.plain,a:task.a,won:false,first:true,hint:false,ms:0};
   drawProduct();drawScreen();$('msg').textContent='';$('msg').className='msg';$('hint').hidden=true;$('hint').textContent=task.hint;$('hintBtn').disabled=false;
   $('lvTitle').textContent=LEVELS[lv].name+' · раунд '+(round+1)+' из '+LEVELS[lv].n;
