@@ -241,7 +241,7 @@ const GEN={
    return {kind:'Подорожание и сравнение',p:null,cmp:[[a1,d1,f1],[a2,d2,f2]],text:'Где дешевле? Введи <span class="hl">меньшую цену</span> после скидки.',plain:'сравнение '+a1+'−'+d1+'% и '+a2+'−'+d2+'%',a:Math.min(f1,f2),hint:'Посчитай обе цены со скидкой и выбери меньшую.'}},
  boss(){return pick([GEN.any,GEN.sale,GEN.sale,GEN.mix])()}
 };
-const LEVELS=[{name:'Быстрые %',gen:'quick',n:6,t:12},{name:'Любой %',gen:'any',n:6,t:16},{name:'Скидки',gen:'sale',n:6,t:18},{name:'Наценка и сравнение',gen:'mix',n:5,t:24},{name:'Чёрная пятница',gen:'boss',n:8,t:15}];
+const LEVELS=[{name:'Быстрые %',gen:'quick',n:6,t:20},{name:'Любой %',gen:'any',n:6,t:28},{name:'Скидки',gen:'sale',n:6,t:32},{name:'Наценка и сравнение',gen:'mix',n:5,t:40},{name:'Чёрная пятница',gen:'boss',n:8,t:26}];
 
 const RAR=[{n:'Обычный',c:'r-common',xp:1},{n:'Редкий',c:'r-rare',xp:2},{n:'Эпический',c:'r-epic',xp:3},{n:'Легендарный',c:'r-legend',xp:5}];
 const BOTS=[{name:'Перекупщик Вася',color:'#ff8a3d',hi:'Привет! Все скидки сегодня мои.'},{name:'Скальпер-3000',color:'#ff3d5a',hi:'Я считаю проценты за 0,1 секунды.'},{name:'Кибер-барыга',color:'#b44dff',hi:'Скидки? Я их чую за километр.'},{name:'Мега-бот распродаж',color:'#3d8bff',hi:'Два магазина — и оба мои.'},{name:'БОСС Чёрной пятницы',color:'#ffd23f',hi:'Чёрная пятница. Здесь я хозяин.'}];
