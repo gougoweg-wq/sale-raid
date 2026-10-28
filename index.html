@@ -18,6 +18,38 @@
 [hidden]{display:none!important}
 html,body{margin:0;min-height:100%}
 body{background:radial-gradient(ellipse at 20% -10%,#2a1530,transparent 50%),radial-gradient(ellipse at 90% 0%,#10304a,transparent 45%),var(--bg);color:var(--fg);font:16px/1.45 var(--f-body);padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-50% -50% 0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(61,220,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,61,90,.06) 1px,transparent 1px);background-size:44px 44px;transform:perspective(500px) rotateX(55deg);transform-origin:50% 0;animation:grid 6s linear infinite}
+@keyframes grid{to{background-position:0 44px}}
+.wrap{position:relative;z-index:1}
+.product.r-common{border-color:#3a4058}
+.product.r-rare{border-color:#3d8bff;box-shadow:0 0 0 1px #3d8bff inset,0 0 26px rgba(61,139,255,.35)}
+.product.r-epic{border-color:#b44dff;box-shadow:0 0 0 1px #b44dff inset,0 0 30px rgba(180,77,255,.45)}
+.product.r-legend{border:2px solid transparent;background:linear-gradient(160deg,#2a2210,#151824) padding-box,conic-gradient(from var(--a,0deg),#ffd23f,#ff3d5a,#3ddcff,#ffd23f) border-box;box-shadow:0 0 40px rgba(255,210,63,.45);animation:spinb 3s linear infinite}
+@property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+@keyframes spinb{to{--a:360deg}}
+.product::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite;pointer-events:none}
+@keyframes shine{60%,100%{transform:translateX(100%)}}
+.rar{font:900 11px var(--f-body);letter-spacing:.16em;text-transform:uppercase;align-self:flex-start;border-radius:999px;padding:4px 10px;background:#2b3044;color:var(--muted)}
+.r-rare .rar{background:#16325f;color:#8fbaff}.r-epic .rar{background:#3a1a55;color:#d9a8ff}.r-legend .rar{background:#4d3a08;color:#ffd23f}
+.stamp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) rotate(-14deg);font:900 34px var(--f-display);letter-spacing:.06em;padding:6px 16px;border:5px solid currentColor;border-radius:12px;animation:stamp .35s cubic-bezier(.2,1.6,.4,1);pointer-events:none;background:rgba(13,14,20,.55)}
+.stamp.ok{color:var(--ok)}.stamp.bad{color:var(--sale)}
+@keyframes stamp{from{transform:translate(-50%,-50%) rotate(-14deg) scale(2.4);opacity:0}}
+.botrow{display:flex;align-items:center;gap:10px}
+.botav{width:54px;height:54px;flex:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.botav.frozen{filter:drop-shadow(0 0 10px #3ddcff) saturate(.2) brightness(1.3)}
+.botav .ant{animation:blink 1.2s infinite}@keyframes blink{50%{opacity:.2}}
+.bubble{font:800 13px var(--f-body);background:var(--panel2);border:1px solid var(--line);border-radius:12px 12px 12px 2px;padding:6px 10px;min-height:30px;flex:1;min-width:0;animation:pop2 .25s}
+@keyframes pop2{from{transform:scale(.85);opacity:.3}}
+.bot .bar.frozen i{background:linear-gradient(90deg,#9fe9ff,#3ddcff)!important;box-shadow:0 0 12px #3ddcff}
+.btn.freeze{border-color:#3ddcff;color:#9fe9ff}
+.rankrow{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.rankrow h2 b{color:var(--tag);letter-spacing:.06em}
+.xp{flex:1;min-width:140px;height:10px;border-radius:9px;background:var(--panel2);overflow:hidden}
+.xp i{display:block;height:100%;background:linear-gradient(90deg,#ffd23f,#ff3d5a);transition:width .5s}
+.xptxt{font:700 12px var(--f-mono);color:var(--muted)}
+.coll{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));gap:6px}
+.coll span{display:grid;place-items:center;aspect-ratio:1;font-size:26px;border-radius:12px;background:var(--panel2);border:2px solid #2b3044;filter:grayscale(1) brightness(.4)}
+.coll span.got{filter:none}.coll span.c1{border-color:#3d8bff}.coll span.c2{border-color:#b44dff}.coll span.c3{border-color:#ffd23f;box-shadow:0 0 10px rgba(255,210,63,.5)}
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
 .wrap{max-width:960px;margin:0 auto;padding-block:14px 30px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:14px}
 header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
@@ -113,7 +145,8 @@ th{color:var(--muted);font-size:12px;border-top:0}
   <section class="duel" aria-label="Дуэль">
     <div class="side me"><div class="who"><span>Ты</span><b id="meScore">0</b></div><div class="bar"><i id="meBar"></i></div></div>
     <div class="vs">VS</div>
-    <div class="side bot"><div class="who"><span>Бот-перекупщик</span><b id="botScore">0</b></div><div class="bar" id="botBarBox"><i id="botBar"></i></div></div>
+    <div class="side bot"><div class="botrow"><svg class="botav" id="botAv" viewBox="0 0 64 64" aria-hidden="true"><line x1="32" y1="5" x2="32" y2="13" stroke="currentColor" stroke-width="3"/><circle class="ant" cx="32" cy="5" r="3.5" fill="#ff3d5a"/><rect x="8" y="12" width="48" height="40" rx="12" fill="currentColor"/><rect x="5" y="26" width="5" height="12" rx="2" fill="currentColor"/><rect x="54" y="26" width="5" height="12" rx="2" fill="currentColor"/><rect x="14" y="19" width="36" height="25" rx="8" fill="#0d0e14"/><g id="botEyes" fill="#3ddcff"><circle cx="24" cy="29" r="4"/><circle cx="40" cy="29" r="4"/></g><path id="botBrows" d="M18 21 L29 25 M46 21 L35 25" stroke="#ff3d5a" stroke-width="3" stroke-linecap="round" opacity="0"/><path id="botMouth" d="M24 38 h16" stroke="#3ddcff" stroke-width="3" fill="none" stroke-linecap="round"/></svg><div class="bubble" id="bubble">…</div></div>
+      <div class="who"><span id="botName">Бот-перекупщик</span><b id="botScore">0</b></div><div class="bar" id="botBarBox"><i id="botBar"></i></div></div>
   </section>
 
   <div class="game">
@@ -124,12 +157,16 @@ th{color:var(--muted);font-size:12px;border-top:0}
       <div class="msg" id="msg"></div>
       <div class="hint" id="hint" hidden></div>
       <div class="pad" id="pad"></div>
-      <div class="row"><button class="btn" id="hintBtn" type="button">Подсказка</button></div>
+      <div class="row"><button class="btn" id="hintBtn" type="button">Подсказка</button><button class="btn freeze" id="freezeBtn" type="button" disabled>❄️ Заморозить бота (0)</button></div>
       <p class="how">Печатай с клавиатуры, Enter — купить.</p>
     </section>
   </div>
 
-  <section class="stash"><h2>Твой склад</h2><div class="items" id="items"></div></section>
+  <section class="stash">
+    <div class="rankrow"><h2>Ранг: <b id="rank">Новичок</b></h2><div class="xp"><i id="xpBar"></i></div><span class="xptxt" id="xpTxt">0 XP</span></div>
+    <h2>Коллекция <span id="collN">0/14</span></h2><div class="coll" id="coll"></div>
+    <h2>Добыча этой игры</h2><div class="items" id="items"></div>
+  </section>
   <details><summary>Для учителя: как решал</summary><div id="report"></div></details>
 </div>
 
@@ -163,6 +200,13 @@ const GEN={
 };
 const LEVELS=[{name:'Быстрые %',gen:'quick',n:6,t:12},{name:'Любой %',gen:'any',n:6,t:16},{name:'Скидки',gen:'sale',n:6,t:18},{name:'Наценка и сравнение',gen:'mix',n:5,t:24},{name:'Чёрная пятница',gen:'boss',n:8,t:15}];
 
+const RAR=[{n:'Обычный',c:'r-common',xp:1},{n:'Редкий',c:'r-rare',xp:2},{n:'Эпический',c:'r-epic',xp:3},{n:'Легендарный',c:'r-legend',xp:5}];
+const BOTS=[{name:'Перекупщик Вася',color:'#ff8a3d',hi:'Привет! Все скидки сегодня мои.'},{name:'Скальпер-3000',color:'#ff3d5a',hi:'Я считаю проценты за 0,1 секунды.'},{name:'Кибер-барыга',color:'#b44dff',hi:'Скидки? Я их чую за километр.'},{name:'Мега-бот распродаж',color:'#3d8bff',hi:'Два магазина — и оба мои.'},{name:'БОСС Чёрной пятницы',color:'#ffd23f',hi:'Чёрная пятница. Здесь я хозяин.'}];
+const RANKS=[[0,'Новичок'],[10,'Охотник за скидками'],[25,'Знаток процентов'],[45,'Мастер распродаж'],[70,'Гроза перекупщиков'],[100,'Легенда Чёрной пятницы']];
+const FACES={normal:'M24 38 h16',smug:'M24 37 q10 5 16 -3',happy:'M23 35 q9 9 18 0',mad:'M24 40 q8 -6 16 0',frozen:'M24 38 l4 -2 l4 2 l4 -2 l4 2'};
+let prog={xp:0,coll:{}};try{const sv=JSON.parse(localStorage.getItem('saleRaid')||'null');if(sv){prog.xp=+sv.xp||0;prog.coll=sv.coll||{}}}catch(e){}
+function saveProg(){try{localStorage.setItem('saleRaid',JSON.stringify(prog))}catch(e){}}
+let rar=0,freezes=0,frozenUntil=0,lastT=0,taunted=false,xpGame=0;
 let lv=0,round=0,task=null,input='',busy=false,me=0,bot=0,streak=0,saved=0,timerOn=true,t0=0,tLeft=0,penalty=0,raf=0,hintShown=false,cur=null,good=null;
 const log=LEVELS.map(()=>[]);
 
@@ -183,27 +227,36 @@ function burst(x,y,n=40){const C=['#ffd23f','#ff3d5a','#3ddcff','#38e08a','#fff'
 function loop(){on=true;const d=devicePixelRatio;ctx.clearRect(0,0,fx.width,fx.height);parts=parts.filter(p=>p.l>0);parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.l-=.017;p.rot+=.2;ctx.globalAlpha=Math.max(0,p.l);ctx.fillStyle=p.c;ctx.save();ctx.translate(p.x*d,p.y*d);ctx.rotate(p.rot);ctx.fillRect(-p.r*d/2,-p.r*d/4,p.r*d,p.r*d/2);ctx.restore()});ctx.globalAlpha=1;if(parts.length)requestAnimationFrame(loop);else on=false}
 
 function drawLevels(){const nav=$('levels');nav.replaceChildren();LEVELS.forEach((L,i)=>{const b=el('button','lv',(i+1)+'. '+L.name);b.type='button';b.setAttribute('aria-current',String(i===lv));const l=log[i];if(l.length>=L.n){const w=l.filter(x=>x.won).length;b.append(el('span','w',' '+w+'/'+L.n))}b.onclick=()=>go(i);nav.append(b)})}
-function drawProduct(){const P=$('product');P.replaceChildren();P.append(el('div','em',good[0]),el('div','name',good[1]));
+function drawProduct(){const P=$('product');P.replaceChildren();P.className='product '+RAR[rar].c;P.append(el('div','rar',RAR[rar].n+' · +'+RAR[rar].xp+' XP'),el('div','em',good[0]),el('div','name',good[1]));
   if(task.badge){const b=el('div','badge'+(task.up?' up':''),task.badge);P.append(b)}
   if(task.cmp){const c=el('div','cmp');task.cmp.forEach(([a,d],i)=>{const x=el('div');x.append(el('span',null,(i?'Магазин Б':'Магазин А')+' · −'+d+'%'));x.append(el('b',null,a+' ₪'));c.append(x)});P.append(c)}
   else{const pr=el('div','price');pr.append(el('span','old'+(task.badge&&!task.up?'':''),task.p+' ₪'));P.append(pr)}
   const q=el('p','q');q.innerHTML=task.text;P.append(q)}
-function newRound(){good=pick(GOODS);task=GEN[LEVELS[lv].gen]();input='';hintShown=false;penalty=0;cur={kind:task.kind,q:task.plain,a:task.a,won:false,first:true,hint:false,ms:0};
+function face(f,line){const m=$('botMouth');m.setAttribute('d',FACES[f]||FACES.normal);$('botBrows').setAttribute('opacity',f==='mad'||f==='smug'?'1':'0');$('botEyes').setAttribute('fill',f==='frozen'?'#e8fbff':'#3ddcff');$('botAv').classList.toggle('frozen',f==='frozen');if(line){const b=$('bubble');b.textContent=line;b.style.animation='none';void b.offsetWidth;b.style.animation=''}}
+function rollRar(){const w=lv===4?[.35,.3,.2,.15]:[.55,.28,.13,.04];let r=Math.random();for(let i=0;i<4;i++){if(r<w[i])return i;r-=w[i]}return 0}
+function stamp(text,ok){const st=el('div','stamp '+(ok?'ok':'bad'),text);$('product').append(st)}
+function drawRank(){let i=0;RANKS.forEach((r,j)=>{if(prog.xp>=r[0])i=j});const lo=RANKS[i][0],hi=RANKS[i+1]?RANKS[i+1][0]:lo;$('rank').textContent=RANKS[i][1];$('xpBar').style.width=(hi>lo?(prog.xp-lo)/(hi-lo)*100:100)+'%';$('xpTxt').textContent=prog.xp+' XP'+(RANKS[i+1]?' / '+hi:'');
+  const c=$('coll');c.replaceChildren();let got=0;GOODS.forEach(([e,n])=>{const k=prog.coll[n];const s=el('span',k!=null?'got c'+k:'',e);s.title=k!=null?n+' — '+RAR[k].n.toLowerCase():'ещё не добыто';if(k!=null)got++;c.append(s)});$('collN').textContent=got+'/'+GOODS.length}
+function drawFreeze(){const b=$('freezeBtn');b.textContent='❄️ Заморозить бота ('+freezes+')';b.disabled=!freezes||!timerOn||busy}
+function newRound(){good=pick(GOODS);rar=rollRar();taunted=false;task=GEN[LEVELS[lv].gen]();face('normal',round===0?BOTS[lv].hi:pick(['Этот товар мой.','Считай быстрее, человек.','Я уже бегу к кассе!','Скидка? Обожаю скидки.']));$('botName').textContent=BOTS[lv].name;$('botAv').style.color=BOTS[lv].color;input='';hintShown=false;penalty=0;cur={kind:task.kind,q:task.plain,a:task.a,won:false,first:true,hint:false,ms:0};
   drawProduct();drawScreen();$('msg').textContent='';$('msg').className='msg';$('hint').hidden=true;$('hint').textContent=task.hint;$('hintBtn').disabled=false;
   $('lvTitle').textContent=LEVELS[lv].name+' · раунд '+(round+1)+' из '+LEVELS[lv].n;
-  $('meBar').style.width='0%';startTimer()}
-function startTimer(){cancelAnimationFrame(raf);const T=LEVELS[lv].t*1000;t0=performance.now();$('botBar').style.width='0%';$('botBarBox').classList.remove('rush');let lastTick=0;
+  $('meBar').style.width='0%';startTimer();drawFreeze()}
+function startTimer(){cancelAnimationFrame(raf);const T=LEVELS[lv].t*1000;t0=performance.now();lastT=t0;frozenUntil=0;$('botBarBox').classList.remove('frozen');$('botBar').style.width='0%';$('botBarBox').classList.remove('rush');let lastTick=0;
   if(!timerOn){$('botBar').style.width='0%';return}
-  const step=t=>{if(busy||!document.contains($('botBar')))return;const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75){$('botBarBox').classList.add('rush');if(t-lastTick>500){sTick();lastTick=t}}
+  const step=t=>{if(busy||!document.contains($('botBar')))return;if(t<frozenUntil){t0+=t-lastT}else if(frozenUntil){frozenUntil=0;$('botBarBox').classList.remove('frozen');face('mad','Кто меня заморозил?!')}lastT=t;const k=Math.min(1,(t-t0+penalty)/T);$('botBar').style.width=(k*100)+'%';if(k>.75&&!frozenUntil){$('botBarBox').classList.add('rush');if(!taunted){taunted=true;face('smug','Почти моё…')}if(t-lastTick>500){sTick();lastTick=t}}
     if(k>=1){botWins();return}raf=requestAnimationFrame(step)};raf=requestAnimationFrame(step)}
 function drawScreen(){const s=$('screen');s.textContent=input?input+' ₪':'₪ ?';s.classList.toggle('empty',!input);$('meBar').style.width=Math.min(100,input.length*25)+'%'}
 function press(k){if(busy)return;if(k==='del')input=input.slice(0,-1);else if(k==='go'){submit();return}else if(input.length<6)input=(input==='0'?'':input)+k;drawScreen()}
 function submit(){if(!input||busy)return;const v=+input;
   if(v===task.a){busy=true;cancelAnimationFrame(raf);cur.won=true;cur.ms=performance.now()-t0;me++;streak++;const disc=task.badge&&!task.up?task.p-task.a:task.cmp?Math.max(task.cmp[0][2],task.cmp[1][2])-task.a:0;saved+=disc;
     $('msg').className='msg ok';$('msg').textContent=(streak>=3?'🔥 Серия '+streak+'! ':'')+pick(['Твоё!','Забрал!','Раньше бота!','Чистая победа!']);sWin();
-    const r=$('product').getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/3,streak>=3?60:40);addItem(true);hud();setTimeout(next,900)}
-  else{cur.first=false;streak=0;sBad();const s=$('screen');s.classList.remove('bad');void s.offsetWidth;s.classList.add('bad');$('msg').className='msg bad';$('msg').textContent=input+' — не то. Бот уже ближе!';penalty+=1500;input='';drawScreen();hud();if(!hintShown&&!timerOn)showHint()}}
-function botWins(){if(busy)return;busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';addItem(false);hud();setTimeout(next,1800)}
+    const gain=RAR[rar].xp;prog.xp+=gain;xpGame+=gain;const prev=prog.coll[good[1]];if(prev==null||rar>prev)prog.coll[good[1]]=rar;saveProg();drawRank();
+    if(streak%3===0&&freezes<2){freezes++;$('msg').textContent+=' Бонус: ❄️ заморозка бота!'}
+    stamp('КУПЛЕНО',true);face('mad',pick(['Эй, это было моё!','Как ты так быстро?!','Не честно!','Ладно, следующий мой.']));
+    const r=$('product').getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/3,rar>=2||streak>=3?70:40);addItem(true);hud();drawFreeze();setTimeout(next,1000)}
+  else{cur.first=false;streak=0;sBad();const s=$('screen');s.classList.remove('bad');void s.offsetWidth;s.classList.add('bad');$('msg').className='msg bad';$('msg').textContent=input+' — не то. Бот уже ближе!';penalty+=1500;input='';drawScreen();hud();face('smug',pick(['Ха, мимо!','Спасибо за фору!','Пересчитай, человек.']));if(!hintShown&&!timerOn)showHint()}}
+function botWins(){if(busy)return;busy=true;cur.won=false;cur.first=false;bot++;streak=0;sLose();$('msg').className='msg bad';$('msg').textContent='Бот успел первым. Правильно: '+task.a+' ₪';stamp('УКРАДЕНО',false);face('happy',pick(['Забираю!','Моё! Хе-хе.','Слишком медленно.']));addItem(false);hud();drawFreeze();setTimeout(next,1800)}
 function next(){log[lv].push(cur);report();round++;if(round>=LEVELS[lv].n){levelEnd();return}busy=false;newRound()}
 function addItem(win){const s=el('span',win?'':'lost',good[0]);s.title=win?good[1]:'забрал бот';$('items').append(s)}
 function hud(){$('meScore').textContent=me;$('botScore').textContent=bot;$('streakP').textContent=streak;$('saved').textContent=saved+' ₪'}
@@ -211,7 +264,7 @@ function showHint(){hintShown=true;cur.hint=true;$('hint').hidden=false;$('hintB
 function modal(title,big,text,btns){const ov=el('div','overlay');const m=el('div','modal');m.append(el('div','big',big),el('h3',null,title),el('p',null,text));const row=el('div','row');row.style.justifyContent='center';btns.forEach(([t,c,f])=>{const b=el('button','btn '+c,t);b.type='button';b.onclick=()=>{ov.remove();f()};row.append(b)});m.append(row);ov.append(m);document.body.append(ov);row.querySelector('button').focus()}
 function levelEnd(){cancelAnimationFrame(raf);drawLevels();const l=log[lv],w=l.filter(x=>x.won).length;const win=w>l.length/2;if(win){sFan();for(let i=0;i<5;i++)setTimeout(()=>burst(innerWidth*(.2+Math.random()*.6),innerHeight*.3,40),i*150)}
   const last=lv===LEVELS.length-1;
-  modal(win?(last?'Чёрная пятница твоя!':'Уровень за тобой!'):'Бот оказался быстрее',win?'🏆':'🤖','Ты забрал '+w+' из '+l.length+'. Сэкономлено всего: '+saved+' ₪.',
+  modal(win?(last?'Чёрная пятница твоя!':'Уровень за тобой!'):'Бот оказался быстрее',win?'🏆':'🤖','Ты забрал '+w+' из '+l.length+'. Сэкономлено: '+saved+' ₪. Опыт за игру: +'+xpGame+' XP, ранг — '+$('rank').textContent+'.',
    last||!win?[['Ещё раз','main',()=>go(lv,true)]].concat(!last&&!win?[['Дальше всё равно','',()=>go(lv+1)]]:[]):[['Дальше: '+LEVELS[lv+1].name,'main',()=>go(lv+1)],['Ещё раз','',()=>go(lv,true)]])}
 function go(n,reset){cancelAnimationFrame(raf);document.querySelectorAll('.overlay').forEach(o=>o.remove());lv=n;round=0;busy=false;if(reset)log[lv]=[];else log[lv]=[];drawLevels();newRound()}
 function report(){const box=$('report');box.replaceChildren();const kinds=['Быстрые %','Любой %','Цена со скидкой','Подорожание и сравнение'];const all=log.flat();
@@ -224,7 +277,9 @@ function report(){const box=$('report');box.replaceChildren();const kinds=['Бы
 const pad=$('pad');['7','8','9','4','5','6','1','2','3','del','0','go'].forEach(k=>{const b=el('button','key'+(k==='go'?' go':k==='del'?' del':''),k==='del'?'⌫':k==='go'?'Купить':k);b.type='button';b.dataset.k=k;b.setAttribute('aria-label',k==='del'?'Стереть':k==='go'?'Купить':k);b.onclick=()=>press(k);pad.append(b)});
 addEventListener('keydown',e=>{if(document.querySelector('.overlay'))return;let k=null;if(/^[0-9]$/.test(e.key))k=e.key;else if(e.key==='Backspace')k='del';else if(e.key==='Enter')k='go';if(k){e.preventDefault();press(k);const b=pad.querySelector('[data-k="'+k+'"]');if(b){b.classList.add('press');setTimeout(()=>b.classList.remove('press'),90)}}});
 $('hintBtn').onclick=showHint;
-$('timerBtn').onclick=()=>{timerOn=!timerOn;$('timerBtn').setAttribute('aria-pressed',String(timerOn));$('timerBtn').textContent=timerOn?'⏱ Бот':'⏱ Без бота';$('botBarBox').parentElement.style.opacity=timerOn?1:.35;if(!busy)startTimer()};
+$('freezeBtn').onclick=()=>{if(!freezes||busy||!timerOn)return;freezes--;frozenUntil=performance.now()+5000;$('botBarBox').classList.add('frozen');$('botBarBox').classList.remove('rush');face('frozen','Бр-р-р… не могу двигаться!');drawFreeze()};
+drawRank();
+$('timerBtn').onclick=()=>{timerOn=!timerOn;setTimeout(drawFreeze);$('timerBtn').setAttribute('aria-pressed',String(timerOn));$('timerBtn').textContent=timerOn?'⏱ Бот':'⏱ Без бота';$('botBarBox').parentElement.style.opacity=timerOn?1:.35;if(!busy)startTimer()};
 $('mute').onclick=()=>{muted=!muted;$('mute').textContent=muted?'🔇':'🔊';$('mute').setAttribute('aria-label',muted?'Включить звук':'Выключить звук')};
 addEventListener('resize',size);size();
 // первый раунд стартует только после «Погнали», чтобы бот не бежал за заставкой
